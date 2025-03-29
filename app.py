@@ -1,13 +1,14 @@
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from database import session_dependency, create_db_and_tables, engine
-from fastapi import FastAPI, Depends, HTTPException, status
-from models import User, CreateUser, Token, TokenData, Role
 from datetime import datetime, timedelta, timezone
-from passlib.context import CryptContext
-from sqlmodel import Session, select
-from jose import jwt, JWTError
 from typing import Annotated
 
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from jose import jwt, JWTError
+from sqlmodel import Session, select
+
+from database import session_dependency, create_db_and_tables, engine
+from models import User, CreateUser, Token, TokenData, Role
 
 # Configuration
 SECRET_KEY = "3d9862ee148b7256adac27cf397169b71124611dfaa319c3abea91f216ed17b3"
@@ -67,7 +68,7 @@ def create_token(
     payload["exp"] = expire_time
 
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM) 
-    return token
+    return Token(access_token=token, token_type="bearer")
 
 
 def decode_token(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
@@ -93,12 +94,13 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = verify_user(form_data.username, form_data.password)
     token = create_token({"username": user.username})
     return token
+    # return Token(access_token=token, token_type="bearer")
 
 
 """Let a user into the secret room if their token is valid."""
 @app.get("/secret-room")  # VIP
 async def secret_room(user: Annotated[User, Depends(decode_token)]):
-    return {"message": f"Welcome to the secret room, {user.username}!"}
+    return {"message": f"{user.username.title()} is Now in the Secret Room"}
 
 
 """Register New User."""
@@ -115,3 +117,4 @@ async def create_user(new_user: CreateUser, session: session_dependency):
     session.commit()
     session.refresh(db_user)
     return db_user
+
