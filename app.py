@@ -15,7 +15,7 @@ SECRET_KEY = "3d9862ee148b7256adac27cf397169b71124611dfaa319c3abea91f216ed17b3"
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_MINUTES = 5
 
-# Tools
+# Utils
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")  # get token from request headers.
 
